@@ -53,6 +53,16 @@ function App() {
     "How many years was each participant left for in Caspi?",
     "What gene was tested in Caspi et al?",
     "Caspi found a ______ relationship between alleles of the 5-HTT gene and depression",
+    "Serotonin controls:",
+    "Caspi et al relies on the ___________ model",
+    "One weakness of Caspi et al is that the explanation is very ___________",
+    "One strength of Caspi et al is that the procedure is __________",
+    "One strength of Caspi et al is that the participants gave consent, making it ________",
+    "Caspi et al used a lot of people. This makes the study more ________",
+    "Caspi et al debriefed the participants. This makes the study more ________",
+    "Some people argue that Caspi et al is not applicable because we have _____ ______.",
+    "Some people argue the genetic explanation of depression is very ________.",
+    "People who are more likely to do something due to their genes are ___________.",
   ];
 
   const answers = [
@@ -115,6 +125,26 @@ function App() {
     ["5", "4", "6", "7"],
     ["5-HTT", "5-HPP", "5-NTT", "7-BLT"],
     ["Direct", "Indirect", "Non-direct", "Curved"],
+    ["Mood", "body fat percentage", "attention", "Hunger"],
+    ["Diathesis-stress", "Diabetes-stress", "Life-stress", "Stress-gene"],
+    ["Deterministic", "Predictive", "Uncontrollable", "Biased"],
+    ["Standardised", "Normal", "Unnatural", "Long"],
+    ["Ethical", "Generalisable", "Applicable", "Valid"],
+    ["Generalisable", "Reliable", "Valid", "Ethical"],
+    ["Ethical", "Generalisable", "Applicable", "Valid"],
+    [
+      "Free will",
+      "Medicinal treatment",
+      "Genetic modification",
+      "Fun & happiness",
+    ],
+    ["reductionist", "holist", "altruistic", "fantastic"],
+    [
+      "genetically predisposed",
+      "neurally developed",
+      "completely useless",
+      "very unlucky",
+    ],
   ];
 
   useEffect(() => {
