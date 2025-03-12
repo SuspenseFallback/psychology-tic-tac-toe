@@ -52,6 +52,7 @@ function App() {
     "What was group 3 in Caspi et al?",
     "How many years was each participant left for in Caspi?",
     "What gene was tested in Caspi et al?",
+    "Caspi found a ______ relationship between alleles of the 5-HTT gene and depression",
   ];
 
   const answers = [
@@ -87,7 +88,9 @@ function App() {
       "birth rate",
       "number of people",
     ],
+    ["5-10%", "0-4%", "11-15%", "16-20%"],
     ["9.9", "9.8", "9.7", "9.6"],
+    ["847", "947", "647", "547"],
     ["2003", "2004", "2005", "2002"],
     ["3", "2", "4", "5"],
     ["Longitudinal", "Case study", "Quasi", "Not a study"],
@@ -111,6 +114,7 @@ function App() {
     ],
     ["5", "4", "6", "7"],
     ["5-HTT", "5-HPP", "5-NTT", "7-BLT"],
+    ["Direct", "Indirect", "Non-direct", "Curved"],
   ];
 
   useEffect(() => {
@@ -516,19 +520,19 @@ function App() {
               className={"cell cell-1 col-1" + (active[0][0] ? " active" : "")}
               onClick={() => addTurn(0, 0)}
             >
-              {tic_tac_toe[0][0]}
+              <p className="sign">{tic_tac_toe[0][0]}</p>
             </div>
             <div
               className={"cell cell-2 col-2" + (active[0][1] ? " active" : "")}
               onClick={() => addTurn(0, 1)}
             >
-              {tic_tac_toe[0][1]}
+              <p className="sign">{tic_tac_toe[0][1]}</p>
             </div>
             <div
               className={"cell cell-3 col-3" + (active[0][2] ? " active" : "")}
               onClick={() => addTurn(0, 2)}
             >
-              {tic_tac_toe[0][2]}
+              <p className="sign">{tic_tac_toe[0][2]}</p>
             </div>
           </div>
           <div className="row row-2">
@@ -536,19 +540,19 @@ function App() {
               className={"cell cell-4 col-1" + (active[1][0] ? " active" : "")}
               onClick={() => addTurn(1, 0)}
             >
-              {tic_tac_toe[1][0]}
+              <p className="sign">{tic_tac_toe[1][0]}</p>
             </div>
             <div
               className={"cell cell-5 col-2" + (active[1][1] ? " active" : "")}
               onClick={() => addTurn(1, 1)}
             >
-              {tic_tac_toe[1][1]}
+              <p className="sign">{tic_tac_toe[1][1]}</p>
             </div>
             <div
               className={"cell cell-6 col-3" + (active[1][2] ? " active" : "")}
               onClick={() => addTurn(1, 2)}
             >
-              {tic_tac_toe[1][2]}
+              <p className="sign">{tic_tac_toe[1][2]}</p>
             </div>
           </div>
           <div className="row row-3">
@@ -556,19 +560,19 @@ function App() {
               className={"cell cell-7 col-1" + (active[2][0] ? " active" : "")}
               onClick={() => addTurn(2, 0)}
             >
-              {tic_tac_toe[2][0]}
+              <p className="sign">{tic_tac_toe[2][0]}</p>
             </div>
             <div
               className={"cell cell-8 col-2" + (active[2][1] ? " active" : "")}
               onClick={() => addTurn(2, 1)}
             >
-              {tic_tac_toe[2][1]}
+              <p className="sign">{tic_tac_toe[2][1]}</p>
             </div>
             <div
               className={"cell cell-9 col-3" + (active[2][2] ? " active" : "")}
               onClick={() => addTurn(2, 2)}
             >
-              {tic_tac_toe[2][2]}
+              <p className="sign">{tic_tac_toe[2][2]}</p>
             </div>
           </div>
         </div>
