@@ -1,622 +1,189 @@
-import React, { useEffect, useState } from "react";
-import "./App.css";
+import { useEffect, useState, useCallback } from 'react';
+import './App.css';
+import { QUESTIONS_DATA } from './data/questions';
+import Board from './components/Board';
+import ScoreBoard from './components/ScoreBoard';
+import QuestionModal from './components/QuestionModal';
 
-function App() {
-  const [tic_tac_toe, set_tic_tac_toe] = useState([
-    ["", "", ""],
-    ["", "", ""],
-    ["", "", ""],
-  ]);
+const INITIAL_BOARD = [
+  ['', '', ''],
+  ['', '', ''],
+  ['', '', ''],
+];
 
-  const [active, set_active] = useState([
-    [false, false, false],
-    [false, false, false],
-    [false, false, false],
-  ]);
+const INITIAL_ACTIVE = [
+  [false, false, false],
+  [false, false, false],
+  [false, false, false],
+];
 
-  const [score, set_score] = useState({ x: 0, o: 0 });
-  const [modal, set_modal] = useState(false);
-  const [answer, set_answer] = useState("");
-  const [correct_answer, set_correct_answer] = useState("");
-  const [correct, set_correct] = useState(false);
-  const [answered, set_answered] = useState(false);
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
 
-  const [x_turn, set_x_turn] = useState(true);
-  const [over, set_over] = useState(false);
-  const [question_index, set_question_index] = useState(0);
-  const [shuffled_answers, set_shuffled_answers] = useState([]);
-  const [row, set_row] = useState(false);
-  const [column, set_column] = useState(false);
+export default function App() {
+  const [board, setBoard] = useState(INITIAL_BOARD);
+  const [activeCells, setActiveCells] = useState(INITIAL_ACTIVE);
+  const [score, setScore] = useState({ x: 0, o: 0 });
+  const [isXTurn, setIsXTurn] = useState(true);
+  const [isOver, setIsOver] = useState(false);
 
-  const questions = [
-    "Which of these is a main symptom of unipolar depression?",
-    "Which of these is a main symptom of unipolar depression?",
-    "Which of these is a main symptom of unipolar depression?",
-    "How many symptoms are there in mild depression over two weeks?",
-    "How many symptoms are there in moderate depression over two weeks?",
-    "How many symptoms are there in severe depression over two weeks?",
-    "How many times more likely are people to be diagnosed with depression from 1940 to 1980?",
-    "In England, ________ people will be diagnosed with depression by 2026:",
-    "Depression increases the risk of:",
-    "Modern times are _______ stressful that previous times",
-    "Depressed people tend to miss:",
-    "Depressed people increases the ________ in the UK",
-    "______% of people with severe depression commit suicide.",
-    "_______ million days of work were missed due to depression.",
-    "How many people participated in Caspi et al?",
-    "What year was Caspi et al conducted?",
-    "How many groups were in Caspi et al?",
-    "What kind of study was Caspi et al?",
-    "What was group 1 in Caspi et al?",
-    "What was group 2 in Caspi et al?",
-    "What was group 3 in Caspi et al?",
-    "How many years was each participant left for in Caspi?",
-    "What gene was tested in Caspi et al?",
-    "Caspi found a ______ relationship between alleles of the 5-HTT gene and depression",
-    "Serotonin controls:",
-    "Caspi et al relies on the ___________ model",
-    "One weakness of Caspi et al is that the explanation is very ___________",
-    "One strength of Caspi et al is that the procedure is __________",
-    "One strength of Caspi et al is that the participants gave consent, making it ________",
-    "Caspi et al used a lot of people. This makes the study more ________",
-    "Caspi et al debriefed the participants. This makes the study more ________",
-    "Some people argue that Caspi et al is not applicable because we have _____ ______.",
-    "Some people argue the genetic explanation of depression is very ________.",
-    "People who are more likely to do something due to their genes are ___________.",
-  ];
-
-  const answers = [
-    [
-      "Lowering of mood",
-      "Poor sleep",
-      "Lack of appetite",
-      "Not enjoying activities that they used to",
-    ],
-    [
-      "Lack of energy even after resting for a long time",
-      "Slowing down of general behaviour",
-      "Lack of appetite",
-      "Lack of self-esteem",
-    ],
-    [
-      "Lack of motivation to do things",
-      "Increase in appetite",
-      "Addiction",
-      "Leg pain",
-    ],
-    ["4", "<3", "5-6", "7+"],
-    ["5-6", "<3", "4", "7+"],
-    ["7+", "<3", "4", "5-6"],
-    ["10", "5", "8", "12"],
-    ["1.45 million", "1.24 million", "1.24 billion", "1.45 billion"],
-    ["Suicide", "Nuclear war", "Leg pain", "Genocide"],
-    ["More", "Less", "As", "Neither were stressful"],
-    ["Work", "Accidents", "Buses", "India"],
-    [
-      "Cost of treatment",
-      "Rate of accidents",
-      "birth rate",
-      "number of people",
-    ],
-    ["5-10%", "0-4%", "11-15%", "16-20%"],
-    ["9.9", "9.8", "9.7", "9.6"],
-    ["847", "947", "647", "547"],
-    ["2003", "2004", "2005", "2002"],
-    ["3", "2", "4", "5"],
-    ["Longitudinal", "Case study", "Quasi", "Not a study"],
-    [
-      "2 short alleles",
-      "1 short, 1 long allele",
-      "2 long alleles",
-      "3 long alleles",
-    ],
-    [
-      "1 short, 1 long allele",
-      "2 short alleles",
-      "2 long alleles",
-      "3 long alleles",
-    ],
-    [
-      "2 long alleles",
-      "2 short alleles",
-      "1 short, 1 long allele",
-      "3 long alleles",
-    ],
-    ["5", "4", "6", "7"],
-    ["5-HTT", "5-HPP", "5-NTT", "7-BLT"],
-    ["Direct", "Indirect", "Non-direct", "Curved"],
-    ["Mood", "body fat percentage", "attention", "Hunger"],
-    ["Diathesis-stress", "Diabetes-stress", "Life-stress", "Stress-gene"],
-    ["Deterministic", "Predictive", "Uncontrollable", "Biased"],
-    ["Standardised", "Normal", "Unnatural", "Long"],
-    ["Ethical", "Generalisable", "Applicable", "Valid"],
-    ["Generalisable", "Reliable", "Valid", "Ethical"],
-    ["Ethical", "Generalisable", "Applicable", "Valid"],
-    [
-      "Free will",
-      "Medicinal treatment",
-      "Genetic modification",
-      "Fun & happiness",
-    ],
-    ["reductionist", "holist", "altruistic", "fantastic"],
-    [
-      "genetically predisposed",
-      "neurally developed",
-      "completely useless",
-      "very unlucky",
-    ],
-  ];
+  const [targetCell, setTargetCell] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [shuffledOptions, setShuffledOptions] = useState([]);
+  const [selectedAnswer, setSelectedAnswer] = useState('');
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
 
   useEffect(() => {
-    document.title = "Psychology Tic Tac Toe";
+    document.title = 'Psychology Tic Tac Toe';
   }, []);
 
-  function shuffle(array) {
-    let new_array = [...array];
-    let currentIndex = new_array.length,
-      randomIndex;
+  const checkWinner = useCallback((currentBoard) => {
+    const lines = [
+      // Rows
+      { coords: [[0, 0], [0, 1], [0, 2]] },
+      { coords: [[1, 0], [1, 1], [1, 2]] },
+      { coords: [[2, 0], [2, 1], [2, 2]] },
+      // Columns
+      { coords: [[0, 0], [1, 0], [2, 0]] },
+      { coords: [[0, 1], [1, 1], [2, 1]] },
+      { coords: [[0, 2], [1, 2], [2, 2]] },
+      // Diagonals
+      { coords: [[0, 0], [1, 1], [2, 2]] },
+      { coords: [[0, 2], [1, 1], [2, 0]] },
+    ];
 
-    // While there remain elements to shuffle.
-    while (currentIndex > 0) {
-      // Pick a remaining element.
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-
-      // And swap it with the current element.
-      [new_array[currentIndex], new_array[randomIndex]] = [
-        new_array[randomIndex],
-        new_array[currentIndex],
-      ];
+    for (const line of lines) {
+      const [[r1, c1], [r2, c2], [r3, c3]] = line.coords;
+      const symbol = currentBoard[r1][c1];
+      if (
+        symbol &&
+        symbol === currentBoard[r2][c2] &&
+        symbol === currentBoard[r3][c3]
+      ) {
+        const winningPattern = INITIAL_ACTIVE.map((row) => [...row]);
+        line.coords.forEach(([r, c]) => {
+          winningPattern[r][c] = true;
+        });
+        return { winner: symbol, pattern: winningPattern };
+      }
     }
 
-    return new_array;
-  }
+    const isFull = currentBoard.every((row) => row.every((cell) => cell !== ''));
+    if (isFull) {
+      const fullPattern = [
+        [true, true, true],
+        [true, true, true],
+        [true, true, true],
+      ];
+      return { winner: 'draw', pattern: fullPattern };
+    }
 
-  function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
-  }
+    return null;
+  }, []);
 
-  const show_question = () => {
-    const random = getRandomInt(questions.length);
-    set_question_index(random);
-    set_correct_answer(answers[random][0]);
-    set_shuffled_answers(shuffle(answers[random]));
+  const handleCellClick = (row, col) => {
+    if (isOver || board[row][col] !== '') return;
 
-    set_modal(true);
+    setTargetCell({ row, col });
+    const randomIndex = Math.floor(Math.random() * QUESTIONS_DATA.length);
+    setQuestionIndex(randomIndex);
+    setShuffledOptions(shuffleArray(QUESTIONS_DATA[randomIndex].options));
+    setSelectedAnswer('');
+    setIsAnswered(false);
+    setIsCorrect(false);
+    setIsModalOpen(true);
   };
 
-  const close_question = () => {
-    set_question_index(0);
-    set_answer("");
-    set_answered(false);
-    set_correct_answer("");
-    set_modal(false);
-    set_row(false);
-    set_column(false);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setIsAnswered(false);
+    setSelectedAnswer('');
+    setTargetCell(null);
   };
 
-  const answer_question = () => {
-    set_answered(true);
+  const handleSubmitAnswer = () => {
+    if (!targetCell || isAnswered) return;
 
-    if (answer == correct_answer) {
-      set_correct(true);
-      if (x_turn) {
-        addX(row, column);
-      } else {
-        addO(row, column);
-      }
+    setIsAnswered(true);
+    const currentQuestion = QUESTIONS_DATA[questionIndex];
+    const correct = selectedAnswer === currentQuestion.correctAnswer;
+    setIsCorrect(correct);
 
-      const is_over = check_if_done();
-      if (!is_over) {
-        set_x_turn(!x_turn);
-      } else {
-        if (is_over === "draw") {
-          set_score({ x: score.x + 0.5, o: score.o + 0.5 });
-        } else if (x_turn) {
-          set_score({ x: score.x + 1, o: score.o });
-        } else {
-          set_score({ x: score.x, o: score.o + 1 });
+    if (correct) {
+      const currentPlayerSymbol = isXTurn ? 'X' : 'O';
+      const newBoard = board.map((r, rIdx) =>
+        rIdx === targetCell.row
+          ? r.map((c, cIdx) => (cIdx === targetCell.col ? currentPlayerSymbol : c))
+          : [...r]
+      );
+      setBoard(newBoard);
+
+      const gameResult = checkWinner(newBoard);
+      if (gameResult) {
+        setIsOver(true);
+        setActiveCells(gameResult.pattern);
+        if (gameResult.winner === 'draw') {
+          setScore((prev) => ({ x: prev.x + 0.5, o: prev.o + 0.5 }));
+        } else if (gameResult.winner === 'X') {
+          setScore((prev) => ({ ...prev, x: prev.x + 1 }));
+        } else if (gameResult.winner === 'O') {
+          setScore((prev) => ({ ...prev, o: prev.o + 1 }));
         }
+      } else {
+        setIsXTurn((prev) => !prev);
       }
     } else {
-      set_correct(false);
-      set_x_turn(!x_turn);
+      setIsXTurn((prev) => !prev);
     }
   };
 
-  const addTurn = (r, c) => {
-    if (!over) {
-      if (tic_tac_toe[r][c] !== "") {
-        return false;
-      }
-
-      set_row(r);
-      set_column(c);
-
-      show_question();
-    }
-  };
-
-  const addX = (row, column) => {
-    const new_board = [...tic_tac_toe];
-    new_board[row][column] = "X";
-
-    set_tic_tac_toe(new_board);
-  };
-
-  const addO = (row, column) => {
-    const new_board = [...tic_tac_toe];
-    new_board[row][column] = "O";
-
-    set_tic_tac_toe(new_board);
-  };
-
-  const reset = () => {
-    set_tic_tac_toe([
-      ["", "", ""],
-      ["", "", ""],
-      ["", "", ""],
-    ]);
-    set_active([
-      [false, false, false],
-      [false, false, false],
-      [false, false, false],
-    ]);
-    set_x_turn(true);
-    set_over(false);
-  };
-
-  const check_if_done = () => {
-    // for Xs
-
-    if (
-      tic_tac_toe[0][0] === "X" &&
-      tic_tac_toe[0][1] === "X" &&
-      tic_tac_toe[0][2] === "X"
-    ) {
-      set_active([
-        [true, true, true],
-        [false, false, false],
-        [false, false, false],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[1][0] === "X" &&
-      tic_tac_toe[1][1] === "X" &&
-      tic_tac_toe[1][2] === "X"
-    ) {
-      set_active([
-        [false, false, false],
-        [true, true, true],
-        [false, false, false],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[2][0] === "X" &&
-      tic_tac_toe[2][1] === "X" &&
-      tic_tac_toe[2][2] === "X"
-    ) {
-      set_active([
-        [false, false, false],
-        [false, false, false],
-        [true, true, true],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][0] === "X" &&
-      tic_tac_toe[1][0] === "X" &&
-      tic_tac_toe[2][0] === "X"
-    ) {
-      set_active([
-        [true, false, false],
-        [true, false, false],
-        [true, false, false],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][1] === "X" &&
-      tic_tac_toe[1][1] === "X" &&
-      tic_tac_toe[2][1] === "X"
-    ) {
-      set_active([
-        [false, true, false],
-        [false, true, false],
-        [false, true, false],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][2] === "X" &&
-      tic_tac_toe[1][2] === "X" &&
-      tic_tac_toe[2][2] === "X"
-    ) {
-      set_active([
-        [false, false, true],
-        [false, false, true],
-        [false, false, true],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][0] === "X" &&
-      tic_tac_toe[1][1] === "X" &&
-      tic_tac_toe[2][2] === "X"
-    ) {
-      set_active([
-        [true, false, false],
-        [false, true, false],
-        [false, false, true],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][2] === "X" &&
-      tic_tac_toe[1][1] === "X" &&
-      tic_tac_toe[2][0] === "X"
-    ) {
-      set_active([
-        [false, false, true],
-        [false, true, false],
-        [true, false, false],
-      ]);
-      set_over(true);
-      return true;
-    }
-
-    // for Os
-
-    if (
-      tic_tac_toe[0][0] === "O" &&
-      tic_tac_toe[0][1] === "O" &&
-      tic_tac_toe[0][2] === "O"
-    ) {
-      set_active([
-        [true, true, true],
-        [false, false, false],
-        [false, false, false],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[1][0] === "O" &&
-      tic_tac_toe[1][1] === "O" &&
-      tic_tac_toe[1][2] === "O"
-    ) {
-      set_active([
-        [false, false, false],
-        [true, true, true],
-        [false, false, false],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[2][0] === "O" &&
-      tic_tac_toe[2][1] === "O" &&
-      tic_tac_toe[2][2] === "O"
-    ) {
-      set_active([
-        [false, false, false],
-        [false, false, false],
-        [true, true, true],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][0] === "O" &&
-      tic_tac_toe[1][0] === "O" &&
-      tic_tac_toe[2][0] === "O"
-    ) {
-      set_active([
-        [true, false, false],
-        [true, false, false],
-        [true, false, false],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][1] === "O" &&
-      tic_tac_toe[1][1] === "O" &&
-      tic_tac_toe[2][1] === "O"
-    ) {
-      set_active([
-        [false, true, false],
-        [false, true, false],
-        [false, true, false],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][2] === "O" &&
-      tic_tac_toe[1][2] === "O" &&
-      tic_tac_toe[2][2] === "O"
-    ) {
-      set_active([
-        [false, false, true],
-        [false, false, true],
-        [false, false, true],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][0] === "O" &&
-      tic_tac_toe[1][1] === "O" &&
-      tic_tac_toe[2][2] === "O"
-    ) {
-      set_active([
-        [true, false, false],
-        [false, true, false],
-        [false, false, true],
-      ]);
-      set_over(true);
-      return true;
-    } else if (
-      tic_tac_toe[0][2] === "O" &&
-      tic_tac_toe[1][1] === "O" &&
-      tic_tac_toe[2][0] === "O"
-    ) {
-      set_active([
-        [false, false, true],
-        [false, true, false],
-        [true, false, false],
-      ]);
-      set_over(true);
-      return true;
-    }
-
-    if (
-      tic_tac_toe[0][0] &&
-      tic_tac_toe[0][1] &&
-      tic_tac_toe[0][2] &&
-      tic_tac_toe[1][0] &&
-      tic_tac_toe[1][1] &&
-      tic_tac_toe[1][2] &&
-      tic_tac_toe[2][0] &&
-      tic_tac_toe[2][1] &&
-      tic_tac_toe[2][2]
-    ) {
-      set_active([
-        [true, true, true],
-        [true, true, true],
-        [true, true, true],
-      ]);
-      set_over(true);
-      return "draw";
-    }
-
-    return false;
+  const handleReset = () => {
+    setBoard(INITIAL_BOARD);
+    setActiveCells(INITIAL_ACTIVE);
+    setIsXTurn(true);
+    setIsOver(false);
+    setIsModalOpen(false);
+    setIsAnswered(false);
+    setSelectedAnswer('');
+    setTargetCell(null);
   };
 
   return (
     <div className="page">
-      <div
-        className={"modal-overlay" + (modal ? "" : " hidden")}
-        onClick={close_question}
-      ></div>
-      <div className={"modal" + (modal ? "" : " hidden")}>
-        <div className="modal-container">
-          <div className="question-container">
-            <span className="close" onClick={close_question}>
-              x
-            </span>
-            <p className="question">{questions[question_index]}</p>
-            <div className="answers">
-              {correct_answer
-                ? shuffled_answers.map((card_answer, index) => {
-                    return (
-                      <div className="answer">
-                        <input
-                          type="radio"
-                          name="answer"
-                          id={"answer" + index}
-                          onClick={() => set_answer(card_answer)}
-                          className="answer-input"
-                        />
-                        <label
-                          htmlFor={"answer" + index}
-                          onClick={() => set_answer(card_answer)}
-                        >
-                          {card_answer}
-                        </label>
-                      </div>
-                    );
-                  })
-                : null}
-              <button
-                className="submit"
-                disabled={!answer}
-                onClick={answer_question}
-              >
-                Submit
-              </button>
-            </div>
-            <div className={"answer-container" + (answered ? "" : " hidden")}>
-              <span className="close" onClick={close_question}>
-                x
-              </span>
-              <p className="big">{correct ? "Correct!" : "Wrong!"}</p>
-              <p className="correct-answer">Correct answer: {correct_answer}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="game-container">
-        <div className="container">
-          <div className="row row-1">
-            <div
-              className={"cell cell-1 col-1" + (active[0][0] ? " active" : "")}
-              onClick={() => addTurn(0, 0)}
-            >
-              <p className="sign">{tic_tac_toe[0][0]}</p>
-            </div>
-            <div
-              className={"cell cell-2 col-2" + (active[0][1] ? " active" : "")}
-              onClick={() => addTurn(0, 1)}
-            >
-              <p className="sign">{tic_tac_toe[0][1]}</p>
-            </div>
-            <div
-              className={"cell cell-3 col-3" + (active[0][2] ? " active" : "")}
-              onClick={() => addTurn(0, 2)}
-            >
-              <p className="sign">{tic_tac_toe[0][2]}</p>
-            </div>
-          </div>
-          <div className="row row-2">
-            <div
-              className={"cell cell-4 col-1" + (active[1][0] ? " active" : "")}
-              onClick={() => addTurn(1, 0)}
-            >
-              <p className="sign">{tic_tac_toe[1][0]}</p>
-            </div>
-            <div
-              className={"cell cell-5 col-2" + (active[1][1] ? " active" : "")}
-              onClick={() => addTurn(1, 1)}
-            >
-              <p className="sign">{tic_tac_toe[1][1]}</p>
-            </div>
-            <div
-              className={"cell cell-6 col-3" + (active[1][2] ? " active" : "")}
-              onClick={() => addTurn(1, 2)}
-            >
-              <p className="sign">{tic_tac_toe[1][2]}</p>
-            </div>
-          </div>
-          <div className="row row-3">
-            <div
-              className={"cell cell-7 col-1" + (active[2][0] ? " active" : "")}
-              onClick={() => addTurn(2, 0)}
-            >
-              <p className="sign">{tic_tac_toe[2][0]}</p>
-            </div>
-            <div
-              className={"cell cell-8 col-2" + (active[2][1] ? " active" : "")}
-              onClick={() => addTurn(2, 1)}
-            >
-              <p className="sign">{tic_tac_toe[2][1]}</p>
-            </div>
-            <div
-              className={"cell cell-9 col-3" + (active[2][2] ? " active" : "")}
-              onClick={() => addTurn(2, 2)}
-            >
-              <p className="sign">{tic_tac_toe[2][2]}</p>
-            </div>
-          </div>
-        </div>
-        <button className="reset" onClick={reset}>
-          Reset
+      <main className="game-container">
+        <h1 className="game-title">Psychology Tic-Tac-Toe</h1>
+        <Board
+          board={board}
+          activeCells={activeCells}
+          onCellClick={handleCellClick}
+          isOver={isOver}
+        />
+        <button type="button" className="reset" onClick={handleReset}>
+          Reset Game
         </button>
-      </div>
-      <div className="score-container">
-        <p className="title">Scores</p>
-        <p className="x">X: {score.x}</p>
-        <p className="o">O: {score.o}</p>
-      </div>
+      </main>
+
+      <ScoreBoard score={score} isXTurn={isXTurn} isOver={isOver} />
+
+      <QuestionModal
+        isOpen={isModalOpen}
+        questionData={QUESTIONS_DATA[questionIndex]}
+        shuffledOptions={shuffledOptions}
+        selectedAnswer={selectedAnswer}
+        onSelectAnswer={setSelectedAnswer}
+        onSubmitAnswer={handleSubmitAnswer}
+        onClose={handleCloseModal}
+        isAnswered={isAnswered}
+        isCorrect={isCorrect}
+      />
     </div>
   );
 }
-
-export default App;
