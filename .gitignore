@@ -1,2 +1,7 @@
 node_modules
-./dist
+
+# remove dist folder
+dist/
+
+# remove .env
+.env
